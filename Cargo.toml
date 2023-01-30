@@ -4,7 +4,13 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+serde = "1.0.152"
+ethers = { version = "0.17.0", features = [ "ws", "rustls" ] }
+async-trait = { version = "0.1.50", default-features = false }
+serde_json = { version = "1.0.64", default-features = false, features = ["raw_value"] }
 thiserror = "1.0.38"
+tokio = "1.25.0"
+dotenv = "0.15.0"
 
 [dev-dependencies]
 anyhow = "1.0.51"
