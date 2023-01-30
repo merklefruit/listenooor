@@ -80,3 +80,47 @@ impl AlchemyWebSocketProvider {
         SubscriptionStream::new(subscription_id, &self.provider).map_err(Into::into)
     }
 }
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    use ethers::prelude::*;
+    use std::str::FromStr;
+
+    #[tokio::test]
+    async fn test_websocket_provider() -> Result<()> {
+        dotenv::dotenv().ok();
+
+        let url = f!(
+            "wss://eth-mainnet.g.alchemy.com/v2/{}",
+            std::env::var("ALCHEMY_API_KEY")?
+        );
+
+        let provider = AlchemyWebSocketProvider::new(&url).await;
+
+        let usd_coin_address =
+            Address::from_str("0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48").unwrap();
+
+        // Transfer event signature
+        let topics =
+            vec!["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef".to_string()];
+
+        let usdc_transfers = provider
+            .alchemy_subscribe_logs(usd_coin_address, Some(topics))
+            .await?;
+
+        let usdc_transactions = provider
+            .alchemy_subscribe_pending_transactions(Some(usd_coin_address), None)
+            .await?;
+
+        let example_tx = usdc_transactions.take(1).collect::<Vec<_>>().await;
+        println!("{:?}", example_tx);
+        assert_eq!(example_tx[0].to.unwrap(), usd_coin_address);
+
+        let example_log = usdc_transfers.take(1).collect::<Vec<_>>().await;
+        println!("{:?}", example_log);
+        assert_eq!(example_log[0].address, usd_coin_address);
+
+        Ok(())
+    }
+}

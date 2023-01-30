@@ -11,6 +11,7 @@ serde_json = { version = "1.0.64", default-features = false, features = ["raw_va
 thiserror = "1.0.38"
 tokio = "1.25.0"
 dotenv = "0.15.0"
+sqlite = "0.30.3"
 
 [dev-dependencies]
 anyhow = "1.0.51"

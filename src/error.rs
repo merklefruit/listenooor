@@ -8,22 +8,16 @@ pub enum Error {
 
     #[error(transparent)]
     IO(#[from] std::io::Error),
-}
 
-impl From<WsClientError> for Error {
-    fn from(e: WsClientError) -> Self {
-        Self::Generic(e.to_string())
-    }
-}
+    #[error(transparent)]
+    WsClient(#[from] WsClientError),
 
-impl From<VarError> for Error {
-    fn from(e: VarError) -> Self {
-        Self::Generic(e.to_string())
-    }
-}
+    #[error(transparent)]
+    Env(#[from] VarError),
 
-impl From<ProviderError> for Error {
-    fn from(e: ProviderError) -> Self {
-        Self::Generic(e.to_string())
-    }
+    #[error(transparent)]
+    Provider(#[from] ProviderError),
+
+    #[error(transparent)]
+    Sqlite(#[from] sqlite::Error),
 }
