@@ -56,20 +56,12 @@ impl AlchemyWebSocketProvider {
     pub async fn alchemy_subscribe_logs<T: Into<Address> + Send + Sync + Serialize>(
         &self,
         address: T,
-        topics: Option<Vec<T>>,
-    ) -> Result<SubscriptionStream<'_, Ws, Transaction>> {
+        topics: Option<Vec<String>>,
+    ) -> Result<SubscriptionStream<'_, Ws, Log>> {
         let mut param_map: serde_json::Map<String, Value> = serde_json::Map::new();
 
         if let Some(topics) = topics {
-            param_map.insert(
-                "topics".to_string(),
-                json!(topics
-                    .into_iter()
-                    .map(|t| format!("{:?}", t.into()))
-                    .collect::<Vec<_>>()),
-            );
-        } else {
-            param_map.insert("topics".to_string(), json!([]));
+            param_map.insert("topics".to_string(), json!(topics));
         }
 
         param_map.insert(
