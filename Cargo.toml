@@ -12,6 +12,7 @@ thiserror = "1.0.38"
 tokio = "1.25.0"
 dotenv = "0.15.0"
 sqlite = "0.30.3"
+actix-web = "4.3.0"
 
 [dev-dependencies]
 anyhow = "1.0.51"

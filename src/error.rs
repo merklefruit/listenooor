@@ -20,4 +20,7 @@ pub enum Error {
 
     #[error(transparent)]
     Sqlite(#[from] sqlite::Error),
+
+    #[error(transparent)]
+    Actix(#[from] actix_web::Error),
 }

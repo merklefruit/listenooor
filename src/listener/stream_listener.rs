@@ -12,7 +12,7 @@ impl<'a> StreamListener<'a> {
     pub fn new(
         name: &str,
         stream: SubscriptionStream<'a, Ws, Log>,
-        mut storage: SqliteStorage,
+        storage: SqliteStorage,
     ) -> Self {
         let name = name.to_string();
         let init_statement = create_init_statement(&name);
