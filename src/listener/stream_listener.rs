@@ -31,7 +31,7 @@ impl<'a> StreamListener<'a> {
         }
     }
 
-    pub fn listen(&'static self) -> Result<()> {
+    pub fn listen(&'static mut self) -> Result<()> {
         tokio::spawn(async move {
             while let Some(log) = self.stream.next().await {
                 println!("Received log: {:?}", log);

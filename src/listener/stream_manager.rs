@@ -37,13 +37,10 @@ impl<'a> StreamManager<'a> {
             .alchemy_subscribe_logs(address, topics)
             .await?;
 
-        let mut listener: Arc<StreamListener<'a>> =
+        let listener: Arc<StreamListener> =
             Arc::new(StreamListener::new(name, stream, self.storage.clone()));
 
-        // @dev: start the background listening task for the event stream
-        listener.listen();
-
-        self.streams.push(listener.clone());
+        self.streams.push(listener);
 
         Ok(())
     }

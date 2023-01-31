@@ -1,11 +1,11 @@
 #![allow(unused)] // TODO: remove for release
 
 use actix_web::{get, post, web, App, HttpResponse, HttpServer, Responder};
+use ethers::prelude::*;
 use futures::TryFutureExt;
 use std::str::FromStr;
 
 use crate::prelude::*;
-use ethers::prelude::*;
 
 mod alchemy;
 mod error;
@@ -38,13 +38,7 @@ async fn get_latest_log_for_event(
 async fn main() -> Result<()> {
     dotenv::dotenv().ok();
 
-    let url = f!(
-        "wss://eth-mainnet.g.alchemy.com/v2/{}",
-        std::env::var("ALCHEMY_API_KEY")?
-    );
-
     let storage_path = "storage.db";
-    let provider = alchemy::AlchemyWebSocketProvider::new(&url).await;
     let storage = storage::SqliteStorage::init(Some(storage_path));
 
     let usd_coin_address = Address::from_str("0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48").unwrap();
@@ -53,14 +47,11 @@ async fn main() -> Result<()> {
     let topics =
         vec!["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef".to_string()];
 
-    let stream = provider
-        .alchemy_subscribe_logs(usd_coin_address, Some(topics))
+    let mut stream_manager = listener::StreamManager::new(1, storage).await;
+
+    stream_manager
+        .add_event_stream("usd_coin_transfer", usd_coin_address, Some(topics))
         .await?;
-
-    let mut stream_listener =
-        listener::StreamListener::new("usdc_transfers", stream, storage.clone());
-
-    let listener_handle = stream_listener.listen();
 
     println!("Starting web server...");
     let web_server_handle = HttpServer::new(|| {
@@ -73,9 +64,7 @@ async fn main() -> Result<()> {
     })
     .bind(("127.0.0.1", 8080))?
     .run()
-    .map_err(|e| e.into());
-
-    futures::try_join!(listener_handle, web_server_handle)?;
+    .await;
 
     Ok(())
 }
