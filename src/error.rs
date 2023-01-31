@@ -3,24 +3,24 @@ use std::env::VarError;
 
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
-    #[error("Generic {0}")]
+    #[error("Generic error: {0}")]
     Generic(String), // TODO: Remove for release
 
-    #[error(transparent)]
+    #[error("IO error: {0}")]
     IO(#[from] std::io::Error),
 
-    #[error(transparent)]
+    #[error("Websocket client error: {0}")]
     WsClient(#[from] WsClientError),
 
-    #[error(transparent)]
+    #[error("Environment variable error: {0}")]
     Env(#[from] VarError),
 
-    #[error(transparent)]
+    #[error("Provider error: {0}")]
     Provider(#[from] ProviderError),
 
-    #[error(transparent)]
+    #[error("Sqlite error: {0}")]
     Sqlite(#[from] sqlite::Error),
 
-    #[error(transparent)]
+    #[error("Actix error: {0}")]
     Actix(#[from] actix_web::Error),
 }

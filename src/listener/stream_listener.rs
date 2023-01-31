@@ -1,4 +1,5 @@
 use ethers::prelude::*;
+use std::sync::Arc;
 
 use crate::{prelude::*, storage::SqliteStorage};
 
@@ -7,6 +8,10 @@ pub struct StreamListener<'a> {
     stream: SubscriptionStream<'a, Ws, Log>,
     storage: SqliteStorage,
 }
+
+// todo: consider safety of this
+unsafe impl Send for StreamListener<'_> {}
+unsafe impl Sync for StreamListener<'_> {}
 
 impl<'a> StreamListener<'a> {
     pub fn new(
@@ -26,16 +31,26 @@ impl<'a> StreamListener<'a> {
         }
     }
 
-    pub async fn listen(&mut self) -> Result<()> {
-        while let Some(log) = self.stream.next().await {
-            println!("Received log: {:?}", log);
-            self.add_log_to_storage(log)?;
-        }
+    pub fn listen(&'static self) -> Result<()> {
+        tokio::spawn(async move {
+            while let Some(log) = self.stream.next().await {
+                println!("Received log: {:?}", log);
+                self.add_log_to_storage(log).unwrap();
+            }
 
-        Err(Error::Generic("Event stream ended".to_string()))
+            println!("Stream ended");
+        });
+
+        Ok(())
     }
 
-    fn add_log_to_storage(&mut self, log: Log) -> Result<()> {
+    pub async fn stop_listening(&self) -> Result<()> {
+        self.stream.unsubscribe().await?;
+
+        Ok(())
+    }
+
+    fn add_log_to_storage(&self, log: Log) -> Result<()> {
         let insert_statement = insert_log_statement(&self.name, &log);
 
         self.storage.run_query(&insert_statement)?;
