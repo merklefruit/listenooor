@@ -42,8 +42,9 @@ async fn main() -> Result<()> {
         std::env::var("ALCHEMY_API_KEY")?
     );
 
+    let storage_path = "storage.db";
     let provider = alchemy::AlchemyWebSocketProvider::new(&url).await;
-    let storage = storage::SqliteStorage::init(None);
+    let storage = storage::SqliteStorage::init(Some(storage_path));
 
     let usd_coin_address = Address::from_str("0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48").unwrap();
 
@@ -58,17 +59,20 @@ async fn main() -> Result<()> {
     let mut stream_listener =
         listener::StreamListener::new("usdc_transfers", stream, storage.clone());
 
-    stream_listener.listen();
+    let listener_handle = stream_listener.listen();
 
-    HttpServer::new(|| {
+    let web_server_handle = HttpServer::new(|| {
+        let api_storage = storage::SqliteStorage::init(Some(storage_path));
+
         App::new()
-            .app_data(web::Data::new(storage::SqliteStorage::init(None)))
+            .app_data(web::Data::new(api_storage))
             .service(get_all_logs_for_event)
             .service(get_latest_log_for_event)
     })
     .bind(("127.0.0.1", 8080))?
-    .run()
-    .await;
+    .run();
+
+    futures::future::join(listener_handle, web_server_handle).await;
 
     Ok(())
 }

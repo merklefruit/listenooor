@@ -2076,6 +2076,7 @@ dependencies = [
  "async-trait",
  "dotenv",
  "ethers",
+ "futures",
  "serde",
  "serde_json",
  "sqlite",

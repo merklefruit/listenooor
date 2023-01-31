@@ -24,8 +24,26 @@ impl SqliteStorage {
         Ok(())
     }
 
-    pub fn get_all_logs_for_event(&self, event_name: &str) -> Result<()> {
-        todo!();
+    pub fn get_all_logs_for_event(&self, event_name: &str) -> Result<String> {
+        println!("Getting all logs for event: {}", event_name);
+
+        let limit = 100;
+        let query = f!("SELECT * FROM logs_{event_name} LIMIT ?");
+
+        let mut logs = String::new();
+
+        for row in self
+            .db_connection
+            .prepare(query)?
+            .into_iter()
+            .bind((1, limit))?
+            .map(|row| row.unwrap())
+        {
+            println!("{:?}", row);
+            logs.push_str(&format!("{:?}", row));
+        }
+
+        Ok(logs)
     }
 
     pub fn get_latest_log_for_event(&self, event_name: &str) -> Result<()> {

@@ -8,11 +8,12 @@ serde = "1.0.152"
 ethers = { version = "0.17.0", features = [ "ws", "rustls" ] }
 async-trait = { version = "0.1.50", default-features = false }
 serde_json = { version = "1.0.64", default-features = false, features = ["raw_value"] }
+tokio = { version = "1.25.0", features = ["full"] }
 thiserror = "1.0.38"
-tokio = "1.25.0"
 dotenv = "0.15.0"
 sqlite = "0.30.3"
 actix-web = "4.3.0"
+futures = "0.3.26"
 
 [dev-dependencies]
 anyhow = "1.0.51"

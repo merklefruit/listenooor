@@ -46,7 +46,7 @@ impl<'a> StreamListener<'a> {
 
 fn create_init_statement(name: &str) -> String {
     f!(
-        "CREATE TABLE logs_{name} (
+        "CREATE TABLE IF NOT EXISTS logs_{name} (
             block_number INTEGER,
             block_hash TEXT,
             transaction_hash TEXT,
