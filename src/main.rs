@@ -38,24 +38,9 @@ async fn get_latest_log_for_event(
 async fn main() -> Result<()> {
     dotenv::dotenv().ok();
 
-    let storage_path = "storage.db";
-    let storage = storage::SqliteStorage::init(Some(storage_path));
-
-    let usd_coin_address = Address::from_str("0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48").unwrap();
-
-    // Transfer event signature
-    let topics =
-        vec!["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef".to_string()];
-
-    let mut stream_manager = listener::StreamManager::new(1, storage).await;
-
-    stream_manager
-        .add_event_stream("usd_coin_transfer", usd_coin_address, Some(topics))
-        .await?;
-
     println!("Starting web server...");
     let web_server_handle = HttpServer::new(|| {
-        let api_storage = storage::SqliteStorage::init(Some(storage_path));
+        let api_storage = storage::SqliteStorage::init(Some("test.db"));
 
         App::new()
             .app_data(web::Data::new(api_storage))
