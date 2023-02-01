@@ -9,9 +9,8 @@ pub struct StreamListener<'a> {
     storage: SqliteStorage,
 }
 
-// todo: consider safety of this
-unsafe impl Send for StreamListener<'_> {}
-unsafe impl Sync for StreamListener<'_> {}
+unsafe impl<'a> Send for StreamListener<'a> {}
+unsafe impl<'a> Sync for StreamListener<'a> {}
 
 impl<'a> StreamListener<'a> {
     pub fn new(
@@ -31,30 +30,24 @@ impl<'a> StreamListener<'a> {
         }
     }
 
-    pub fn listen(&'static mut self) -> Result<()> {
-        tokio::spawn(async move {
-            while let Some(log) = self.stream.next().await {
-                println!("Received log: {:?}", log);
-                self.add_log_to_storage(log).unwrap();
-            }
+    pub async fn listen(&mut self) -> Result<()> {
+        while let Some(log) = self.stream.next().await {
+            println!("Received log: {:?}", log);
+            self.add_log_to_storage(log).unwrap();
+        }
 
-            println!("Stream ended");
-        });
-
+        println!("Stream ended");
         Ok(())
     }
 
     pub async fn stop_listening(&self) -> Result<()> {
         self.stream.unsubscribe().await?;
-
         Ok(())
     }
 
     fn add_log_to_storage(&self, log: Log) -> Result<()> {
         let insert_statement = insert_log_statement(&self.name, &log);
-
         self.storage.run_query(&insert_statement)?;
-
         Ok(())
     }
 }
